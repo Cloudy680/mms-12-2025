@@ -7,7 +7,7 @@ TEST_AMOUNT = 1000
 FLIP_AMOUNT = 100
 PROBABILITY_OF_HEADS_IN_INTERVAL = 0.95
 SERIES_LENGTH = 5
-PROBABILITY_OF_HEADS_DELTA = 0.1
+PROBABILITY_OF_HEADS_DELTA = 0.05
 
 
 def do_all_tests(p):
@@ -74,8 +74,10 @@ def if_heads_prob_eq_p():
             linewidth=4,
             color='#ffd700',
             alpha=1)
+    plt.title("Expected number of heads(probability of heads = p)")
     plt.xlabel("Probability of getting heads")
     plt.ylabel(f"Heads amount in {TEST_AMOUNT} tests")
+    plt.grid(True, alpha=0.4)
     plt.show()
 
 def heads_prediction_interval_width(p):
@@ -106,8 +108,10 @@ def length_of_interval():
              linewidth=4,
              color='#ffd700',
              alpha=1)
+    plt.title("Width of the prediction interval(probability of heads = p)")
     plt.xlabel("Probability of heads")
     plt.ylabel(f"Length of interval")
+    plt.grid(True, alpha=0.4)
     plt.show()
 
 def series_probabilities():
@@ -123,8 +127,10 @@ def series_probabilities():
              linewidth=4,
              color='#ffd700',
              alpha=1)
+    plt.title("Probabilities of having a series of 5 heads(probability of heads = p)")
     plt.xlabel("Probability of heads")
     plt.ylabel(f"Series probabilities(length {SERIES_LENGTH})")
+    plt.grid(True, alpha=0.4)
     plt.show()
 
 def max_series():
@@ -140,8 +146,10 @@ def max_series():
              linewidth=4,
              color='#ffd700',
              alpha=1)
+    plt.title("Length of the maximum series(probability of heads = p)")
     plt.xlabel("Probability of heads")
     plt.ylabel(f"Max series")
+    plt.grid(True, alpha = 0.4)
     plt.show()
 
 
@@ -150,7 +158,7 @@ def main():
     heads_sum, total, heads_more_than_60, seria_tests, max_seria = do_all_tests(0.5)
 
     print("TASK 1:")
-    print(f"Average heads amount ({TEST_AMOUNT} tests): {total // TEST_AMOUNT}")
+    print(f"Average heads amount ({TEST_AMOUNT} tests): {total / TEST_AMOUNT}")
     print("**********************************************************************************")
 
 
