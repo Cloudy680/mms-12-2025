@@ -167,7 +167,7 @@ def play_match(strategy_a: Strategy, strategy_b: Strategy, rounds: int = 200) ->
     )
 
 
-def run_tournament() -> Tuple[Dict[str, int], Dict[str, int]]:
+def run_tournament() -> Tuple[Dict[str, int], Dict[str, int], Dict[str, Dict[str, Tuple[int, int]]]]:
     strategies: List[Strategy] = [
         Alex(),
         Bob(),
@@ -180,6 +180,8 @@ def run_tournament() -> Tuple[Dict[str, int], Dict[str, int]]:
 
     total_scores: Dict[str, int] = {s.name: 0 for s in strategies}
     max_dominating_runs: Dict[str, int] = {s.name: 0 for s in strategies}
+    names: List[str] = [s.name for s in strategies]
+    pairwise_scores: Dict[str, Dict[str, Tuple[int, int]]] = {name: {} for name in names}
 
     for i in range(len(strategies)):
         for j in range(i + 1, len(strategies)):
@@ -195,15 +197,19 @@ def run_tournament() -> Tuple[Dict[str, int], Dict[str, int]]:
             total_scores[a.name] += result.score_a
             total_scores[b.name] += result.score_b
 
+            # Сохраняем результаты очной встречи в матрицу A vs B и B vs A
+            pairwise_scores[a.name][b.name] = (result.score_a, result.score_b)
+            pairwise_scores[b.name][a.name] = (result.score_b, result.score_a)
+
             if result.max_dominating_run_a > max_dominating_runs[a.name]:
                 max_dominating_runs[a.name] = result.max_dominating_run_a
             if result.max_dominating_run_b > max_dominating_runs[b.name]:
                 max_dominating_runs[b.name] = result.max_dominating_run_b
 
-    return total_scores, max_dominating_runs
+    return total_scores, max_dominating_runs, pairwise_scores
 
 
-def save_results_markdown(path: str, total_scores: Dict[str, int], max_dom_runs: Dict[str, int]) -> None:
+def save_results_markdown(path: str, total_scores: Dict[str, int], max_dom_runs: Dict[str, int], pairwise_scores: Dict[str, Dict[str, Tuple[int, int]]]) -> None:
     lines: List[str] = []
     lines.append("# Результаты турнира: Лабораторная №2")
     lines.append("")
@@ -222,16 +228,67 @@ def save_results_markdown(path: str, total_scores: Dict[str, int], max_dom_runs:
         lines.append(f"| {name} | {run_len} |")
     lines.append("")
 
+    # Таблица очных встреч (каждый с каждым)
+    lines.append("## Результаты каждого с каждым (очки A:B)")
+    lines.append("")
+    order = list(pairwise_scores.keys())
+    lines.append("| Стратегия | " + " | ".join(order) + " |")
+    lines.append("| --- | " + " | ".join(["---:" for _ in order]) + " |")
+    for row in order:
+        row_cells: List[str] = []
+        for col in order:
+            if row == col:
+                row_cells.append("-")
+            else:
+                a_score, b_score = pairwise_scores[row][col]
+                row_cells.append(f"{a_score}:{b_score}")
+        lines.append(f"| {row} | " + " | ".join(row_cells) + " |")
+    lines.append("")
+
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
 
+def render_pairwise_ascii_table(pairwise_scores: Dict[str, Dict[str, Tuple[int, int]]]) -> str:
+    order = list(pairwise_scores.keys())
+    header_labeзаl = "Стратегия"
+
+    # Вычисляем ширины колонок: первая колонка (имена) + по колонке на каждого соперника
+    name_col_width = max(len(header_label), max(len(name) for name in order))
+    col_widths: List[int] = []
+    for col in order:
+        max_cell_len = len(col)
+        for row in order:
+            cell = "-" if row == col else f"{pairwise_scores[row][col][0]}:{pairwise_scores[row][col][1]}"
+            if len(cell) > max_cell_len:
+                max_cell_len = len(cell)
+        col_widths.append(max_cell_len)
+
+    # Построение строк таблицы
+    def sep_line() -> str:
+        return "+" + "-" * (name_col_width + 2) + "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
+
+    lines: List[str] = []
+    lines.append(sep_line())
+    header_row = f"| {header_label:<{name_col_width}} | " + " | ".join(f"{col:>{w}}" for col, w in zip(order, col_widths)) + " |"
+    lines.append(header_row)
+    lines.append(sep_line())
+    for row in order:
+        cells: List[str] = []
+        for col, w in zip(order, col_widths):
+            cell = "-" if row == col else f"{pairwise_scores[row][col][0]}:{pairwise_scores[row][col][1]}"
+            cells.append(f"{cell:>{w}}")
+        lines.append(f"| {row:<{name_col_width}} | " + " | ".join(cells) + " |")
+    lines.append(sep_line())
+    return "\n".join(lines)
+
 def main() -> None:
-    total_scores, max_dominating_runs = run_tournament()
+    total_scores, max_dominating_runs, pairwise_scores = run_tournament()
     save_results_markdown(
         path="lab2_results.md",
         total_scores=total_scores,
         max_dom_runs=max_dominating_runs,
+        pairwise_scores=pairwise_scores,
     )
     print("Total scores:")
     for name, score in sorted(total_scores.items(), key=lambda kv: kv[1], reverse=True):
@@ -239,6 +296,8 @@ def main() -> None:
     print("Max dominating runs:")
     for name, run in sorted(max_dominating_runs.items(), key=lambda kv: kv[1], reverse=True):
         print(f"  {name:>7}: {run}")
+    print("Pairwise results (A:B):")
+    print(render_pairwise_ascii_table(pairwise_scores))
 
 
 if __name__ == "__main__":
