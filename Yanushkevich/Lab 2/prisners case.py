@@ -205,19 +205,19 @@ def main():
         max_dominant_series[pair[0].name] = max(max_dominant_series[pair[0].name], max_series_a)
         max_dominant_series[pair[1].name] = max(max_dominant_series[pair[1].name], max_series_b)
 
-        # print("*********************************")
-        # if pair[0].name == pair[1].name:
-        #     # print(pair[0].name)
-        #     # print(pair[0].points // 2)
-        #     # print()
-        #     # print(pair[1].name)
-        #     # print(pair[1].points // 2)
-        # else:
-        #     print(pair[0].name)
-        #     print(pair[0].points)
-        #     print()
-        #     print(pair[1].name)
-        #     print(pair[1].points)
+        print("*********************************")
+        if pair[0].name == pair[1].name:
+            print(pair[0].name)
+            print(pair[0].points // 2)
+            print()
+            print(pair[1].name)
+            print(pair[1].points // 2)
+        else:
+            print(pair[0].name)
+            print(pair[0].points)
+            print()
+            print(pair[1].name)
+            print(pair[1].points)
 
         if pair[0].points > pair[1].points:
             wins[pair[0].name] += 1
