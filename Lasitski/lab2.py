@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
 
-# Payoff matrix W as described in labs/2.md
-# Rows: my move (0 = cooperate, 1 = defect)
-# Cols: opponent move (0 = cooperate, 1 = defect)
+# Матрица выплат W (см. labs/2.md)
+# Строки: мой ход (0 = сотрудничать, 1 = предать)
+# Столбцы: ход соперника (0 = сотрудничать, 1 = предать)
 W: List[List[int]] = [
     [3, 0],  # I play 0
     [5, 1],  # I play 1
@@ -14,19 +14,13 @@ W: List[List[int]] = [
 
 
 class Strategy:
-    """Base class for a deterministic strategy."""
 
     name: str
 
     def reset(self) -> None:
-        """Reset any internal state between matches."""
         return
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
-        """Return the next move: 0 (cooperate) or 1 (defect).
-
-        round_index is 1-based.
-        """
         raise NotImplementedError
 
 
@@ -34,14 +28,14 @@ class Alex(Strategy):
     name = "Alex"
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
-        return 1  # always defect
+        return 1
 
 
 class Bob(Strategy):
     name = "Bob"
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
-        return 0  # always cooperate
+        return 0
 
 
 class Clara(Strategy):
@@ -49,8 +43,8 @@ class Clara(Strategy):
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
         if not opponent_history:
-            return 0  # first move cooperate
-        return opponent_history[-1]  # tit-for-tat: mirror opponent's last
+            return 0
+        return opponent_history[-1]
 
 
 class Denis(Strategy):
@@ -58,15 +52,14 @@ class Denis(Strategy):
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
         if not opponent_history:
-            return 0  # first move cooperate
-        return 1 - opponent_history[-1]  # opposite of opponent's last
+            return 0
+        return 1 - opponent_history[-1]
 
 
 class Emma(Strategy):
     name = "Emma"
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
-        # cooperate except every 20th round
         return 1 if (round_index % 20 == 0) else 0
 
 
@@ -82,7 +75,7 @@ class Frida(Strategy):
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
         if opponent_history and opponent_history[-1] == 1:
             self._opponent_defected_ever = True
-        # Grim trigger: cooperate until opponent defects once, then defect forever
+        # Жёсткий триггер: сотрудничаем, пока соперник не предаст; затем всегда предаём
         return 1 if self._opponent_defected_ever else 0
 
 
@@ -96,9 +89,7 @@ class George(Strategy):
         self._last_move = None
 
     def choose(self, my_history: List[int], opponent_history: List[int], round_index: int) -> int:
-        # Win-Stay, Lose-Shift (Pavlov):
-        # - First round cooperate
-        # - If last round payoff >= 3, repeat the same move; else switch
+        # Павлов (Win-Stay, Lose-Shift): если получили >= 3, повторяем ход, иначе меняем
         if not my_history:
             self._last_move = 0
             return 0
@@ -107,10 +98,8 @@ class George(Strategy):
         last_op = opponent_history[-1]
         last_payoff = W[last_my][last_op]
         if last_payoff >= 3:
-            # keep last decision
             assert self._last_move is not None
             return self._last_move
-        # switch decision
         new_move = 1 - last_my
         self._last_move = new_move
         return new_move
@@ -142,7 +131,7 @@ def play_match(strategy_a: Strategy, strategy_b: Strategy, rounds: int = 200) ->
 
     for r in range(1, rounds + 1):
         move_a = strategy_a.choose(history_a, history_b, r)
-        move_b = strategy_b.choose(history_b, history_a, r)  # pass symmetric histories
+        move_b = strategy_b.choose(history_b, history_a, r)
 
         history_a.append(move_a)
         history_b.append(move_b)
@@ -152,7 +141,7 @@ def play_match(strategy_a: Strategy, strategy_b: Strategy, rounds: int = 200) ->
         score_a += payoff_a
         score_b += payoff_b
 
-        # Update dominating run counters
+        # Обновляем счётчики доминирующих серий
         if payoff_a == 5 and payoff_b == 0:
             current_dom_run_a += 1
             current_dom_run_b = 0
@@ -197,7 +186,7 @@ def run_tournament() -> Tuple[Dict[str, int], Dict[str, int]]:
             a = strategies[i]
             b = strategies[j]
 
-            # Use fresh instances per match to avoid shared state across matches
+            # На каждый матч — свежие экземпляры, чтобы не было общего состояния
             a_instance = type(a)()
             b_instance = type(b)()
 
@@ -244,7 +233,6 @@ def main() -> None:
         total_scores=total_scores,
         max_dom_runs=max_dominating_runs,
     )
-    # Also print a short summary
     print("Total scores:")
     for name, score in sorted(total_scores.items(), key=lambda kv: kv[1], reverse=True):
         print(f"  {name:>7}: {score}")
