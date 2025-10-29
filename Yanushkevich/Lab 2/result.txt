@@ -1,0 +1,24 @@
+Total points statistics:
+Alex   -   3852
+Bob   -   2973
+Clara   -   3685
+Denis   -   3375
+Emma   -   2494
+Frida   -   4515
+George   -   3538
+
+Winners by total points:
+Frida   -   4515
+
+
+Max dominant series statistics:
+Alex   -   200
+Bob   -   0
+Clara   -   1
+Denis   -   199
+Emma   -   1
+Frida   -   198
+George   -   0
+
+Winners by max dominant series:
+Alex   -   200
